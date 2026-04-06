@@ -1,0 +1,23 @@
+namespace IRSlovensko.Models;
+
+public class Spravca
+{
+    public int Id { get; set; }
+    public string? Znacka { get; set; }
+    public DateTime? DatumZapisu { get; set; }
+    public string? Meno { get; set; }
+    public string? Priezvisko { get; set; }
+    public string? TitulPredMenom { get; set; }
+    public string? TitulZaMenom { get; set; }
+    public DateTime? DatumNarodenia { get; set; }
+    public string? ObchodneMeno { get; set; }
+    public string? Ico { get; set; }
+    public string? Telefon { get; set; }
+    public string? Email { get; set; }
+    public string? Ulica { get; set; }
+    public string? SupisneCislo { get; set; }
+    public string? OrientacneCislo { get; set; }
+    public string? Obec { get; set; }
+    public string? Psc { get; set; }
+    public string? Krajina { get; set; }
+}
