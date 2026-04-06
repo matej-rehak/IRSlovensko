@@ -192,3 +192,4 @@ C:\Users\Matej\source\repos\IRSlovensko\IRSlovensko\bin\Debug\net8.0\runtimes\wi
 C:\Users\Matej\source\repos\IRSlovensko\IRSlovensko\bin\Debug\net8.0\runtimes\win\lib\net6.0\System.Windows.Extensions.dll
 C:\Users\Matej\source\repos\IRSlovensko\IRSlovensko\obj\Debug\net8.0\IRSlovensko.csproj.AssemblyReference.cache
 C:\Users\Matej\source\repos\IRSlovensko\IRSlovensko\obj\Debug\net8.0\IRSloven.E3C81E5E.Up2Date
+C:\Users\Matej\source\repos\IRSlovensko\IRSlovensko\obj\Debug\net8.0\IRSlovensko.sourcelink.json

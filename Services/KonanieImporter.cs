@@ -2,6 +2,7 @@ using IRSlovensko.Data;
 using IRSlovensko.Models;
 using Microsoft.EntityFrameworkCore;
 using ServiceReference1;
+using OsobaDb = IRSlovensko.Models.Osoba;
 using SudDb = IRSlovensko.Models.Sud;
 using SpravcaDb = IRSlovensko.Models.Spravca;
 using WcfOsoba = ServiceReference1.Osoba;
@@ -14,15 +15,17 @@ public class KonanieImporter(IRDbContext db)
     private const int VelkostDavky = 500;
     private readonly KonanieServicePortClient _klient = new();
     private readonly KonanieMapper _mapper = new();
+    private HashSet<long> _existujuceKonanieIds = [];
 
     public async Task ImportPoslednych30RokovAsync()
     {
         Console.WriteLine("Spúšťam import konania za posledných 30 rokov...");
         Console.WriteLine("Stratégia: vyhladajPoslednuZmenuOd + getKonanieDetail");
 
+        await NacitajExistujuceKonanieIdsAsync();
         await ImportSudovAsync();
 
-        var zmenyOd = DateTime.UtcNow.AddYears(-5);
+        var zmenyOd = DateTime.UtcNow.AddYears(-40);
         int celkemSpracovanych = 0;
 
         while (true)
@@ -46,7 +49,7 @@ public class KonanieImporter(IRDbContext db)
                     Console.WriteLine($"\n  Chyba pri KonanieId={zmena.KonanieId}: {ex.Message}. Preskakujem.");
                 }
 
-                await Task.Delay(100);
+                //await Task.Delay(100);
             }
 
             Console.WriteLine($"\r  Dávka hotová. Celkovo: {celkemSpracovanych}");
@@ -58,10 +61,17 @@ public class KonanieImporter(IRDbContext db)
             // Ak sme dostali menej ako plnú dávku, sme na konci
             if (zmeny.Length < VelkostDavky) break;
 
-            await Task.Delay(200);
+            //await Task.Delay(200);
         }
 
         Console.WriteLine($"\nImport dokončený. Celkovo spracovaných: {celkemSpracovanych}");
+    }
+
+    private async Task NacitajExistujuceKonanieIdsAsync()
+    {
+        Console.WriteLine("Načítavam existujúce ID konaní do pamäte...");
+        _existujuceKonanieIds = new HashSet<long>(await db.Konania.Select(k => k.Id).ToListAsync());
+        Console.WriteLine($"V pamäti {_existujuceKonanieIds.Count} existujúcich ID.");
     }
 
     private async Task ImportSudovAsync()
@@ -99,6 +109,10 @@ public class KonanieImporter(IRDbContext db)
 
     private async Task SpracujKonanieAsync(string konanieId)
     {
+        // Rýchla kontrola v pamäti — preskočiť WCF volanie ak ID už existuje
+        if (long.TryParse(konanieId, out var idCheck) && _existujuceKonanieIds.Contains(idCheck))
+            return;
+
         var detailResponse = await _klient.getKonanieDetailAsync(new getKonanieDetailRequest
         {
             KonanieId = konanieId
@@ -106,6 +120,9 @@ public class KonanieImporter(IRDbContext db)
 
         var wcfKonanie = detailResponse.getKonanieDetailResponse.Konanie;
         if (wcfKonanie == null) return;
+
+        // Fallback kontrola pre prípad, že ID nebolo číselné
+        if (_existujuceKonanieIds.Contains(wcfKonanie.Id)) return;
 
         // Upsert Súd
         if (wcfKonanie.Sud != null)
@@ -121,23 +138,11 @@ public class KonanieImporter(IRDbContext db)
         if (wcfKonanie.Dlznik != null)
             dlznikId = await UpsertOsobuAsync(wcfKonanie.Dlznik, wcfKonanie.Id, isNew: false);
 
-        // Upsert Konanie
-        var existujuce = db.Konania.Local.FirstOrDefault(k => k.Id == wcfKonanie.Id)
-            ?? await db.Konania.FindAsync(wcfKonanie.Id);
-
-        if (existujuce == null)
-        {
-            db.Konania.Add(_mapper.MapFromWcf(wcfKonanie, spravcaId, dlznikId));
-        }
-        else
-        {
-            _mapper.UpdateFromWcf(existujuce, wcfKonanie, spravcaId, dlznikId);
-            db.Konania.Update(existujuce);
-        }
-
+        db.Konania.Add(_mapper.MapFromWcf(wcfKonanie, spravcaId, dlznikId));
         await db.SaveChangesAsync();
+        _existujuceKonanieIds.Add(wcfKonanie.Id);
 
-        // Navrhovatelia — vymaz staré, vlož nové
+        // Navrhovatelia — vlož nové
         await AktualizujNavrhovateliAsync(wcfKonanie.Id, wcfKonanie.Navrhovatel);
     }
 
@@ -172,6 +177,28 @@ public class KonanieImporter(IRDbContext db)
     private async Task<int?> UpsertOsobuAsync(WcfOsoba wcf, long konanieId, bool isNew)
     {
         var osoba = _mapper.MapOsoba(wcf);
+
+        OsobaDb? existing = null;
+        if (!string.IsNullOrEmpty(osoba.Ico))
+        {
+            existing = db.Osoby.Local.FirstOrDefault(o => o.Ico == osoba.Ico)
+                       ?? await db.Osoby.FirstOrDefaultAsync(o => o.Ico == osoba.Ico);
+        }
+        else if (!string.IsNullOrEmpty(osoba.Meno) && !string.IsNullOrEmpty(osoba.Priezvisko) && osoba.DatumNarodenia.HasValue)
+        {
+            existing = db.Osoby.Local.FirstOrDefault(o =>
+                o.Meno == osoba.Meno &&
+                o.Priezvisko == osoba.Priezvisko &&
+                o.DatumNarodenia == osoba.DatumNarodenia)
+                ?? await db.Osoby.FirstOrDefaultAsync(o =>
+                o.Meno == osoba.Meno &&
+                o.Priezvisko == osoba.Priezvisko &&
+                o.DatumNarodenia == osoba.DatumNarodenia);
+        }
+
+        if (existing != null)
+            return existing.Id;
+
         db.Osoby.Add(osoba);
         await db.SaveChangesAsync();
         return osoba.Id;
