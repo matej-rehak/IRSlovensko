@@ -1,9 +1,13 @@
+using IRSlovensko.Models.Ciselniky;
+
 namespace IRSlovensko.Models;
 
-public class Osoba
+public class KonanieOsoba
 {
     public int Id { get; set; }
-    public string? Typ { get; set; }
+    public long IdKonania { get; set; }
+    public int? RoleId { get; set; }
+    public int? TypId { get; set; }
     public string? Meno { get; set; }
     public string? Priezvisko { get; set; }
     public string? TitulPredMenom { get; set; }
@@ -26,4 +30,8 @@ public class Osoba
     public string? Krajina { get; set; }
     public string? Iban { get; set; }
     public string? Swift { get; set; }
+
+    public Konanie? Konanie { get; set; }
+    public CSIRKonaniaOsobyRole? Role { get; set; }
+    public CSIRKonaniaOsobyTyp? Typ { get; set; }
 }

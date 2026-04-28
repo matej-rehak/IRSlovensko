@@ -2,8 +2,7 @@ namespace IRSlovensko.Models;
 
 public class Spravca
 {
-    public int Id { get; set; }
-    public string? Znacka { get; set; }
+    public string Znacka { get; set; } = string.Empty;
     public DateTime? DatumZapisu { get; set; }
     public string? Meno { get; set; }
     public string? Priezvisko { get; set; }

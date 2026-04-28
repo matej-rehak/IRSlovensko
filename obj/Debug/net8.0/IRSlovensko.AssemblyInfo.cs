@@ -14,7 +14,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("IRSlovensko")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+7e052c5d6a591ba56324af876b0a5dac58c2522f")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+f8d43e45b18649b627f553e8d5e61718d00246b8")]
 [assembly: System.Reflection.AssemblyProductAttribute("IRSlovensko")]
 [assembly: System.Reflection.AssemblyTitleAttribute("IRSlovensko")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]
