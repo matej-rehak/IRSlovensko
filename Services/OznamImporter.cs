@@ -94,7 +94,7 @@ public class OznamImporter(IRDbContext db)
         [DruhPodaniaSpravca.NEDEFINOVANE]                                                                                                = 61,
     };
 
-    public async Task ImportPoslednych30RokovAsync()
+    public async Task ImportPoslednychRokovAsync()
     {
         int rokOd = DateTime.UtcNow.Year - 1;
         int rokDo = DateTime.UtcNow.Year;

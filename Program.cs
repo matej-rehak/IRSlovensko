@@ -17,9 +17,9 @@ class Program
         await using var db = new IRDbContext(options);
 
         var konanieImporter = new KonanieImporter(db);
-        await konanieImporter.ImportPoslednych30RokovAsync();
+        await konanieImporter.ImportPoslednychRokovAsync();
 
         var oznamImporter = new OznamImporter(db);
-        await oznamImporter.ImportPoslednych30RokovAsync();
+        await oznamImporter.ImportPoslednychRokovAsync();
     }
 }

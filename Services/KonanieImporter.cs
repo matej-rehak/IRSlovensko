@@ -18,7 +18,7 @@ public class KonanieImporter(IRDbContext db)
     private readonly KonanieMapper _mapper = new();
     private HashSet<long> _existujuceKonanieIds = [];
 
-    public async Task ImportPoslednych30RokovAsync()
+    public async Task ImportPoslednychRokovAsync()
     {
         //await NacitajExistujuceKonanieIdsAsync();
         await ImportSudovAsync();
